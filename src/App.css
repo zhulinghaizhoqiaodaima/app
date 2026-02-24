@@ -1,0 +1,49 @@
+/* 全局样式 */
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0f3460;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1a4a7a;
+}
+
+/* 动画效果 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 0.5s ease-in-out;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .text-5xl {
+    font-size: 2.5rem;
+  }
+  
+  .text-4xl {
+    font-size: 2rem;
+  }
+}
