@@ -27,13 +27,13 @@ export function useHandGesture(): UseHandGestureReturn {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const handsRef = useRef<unknown>(null);
   const cameraRef = useRef<unknown>(null);
-  
+
   const [currentGesture, setCurrentGesture] = useState<Gesture>(null);
   const [isStable, setIsStable] = useState(false);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [hasHand, setHasHand] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const stableGestureRef = useRef<Gesture>(null);
   const gestureStartTimeRef = useRef<number | null>(null);
   const GESTURE_HOLD_TIME = 800; // 0.8秒稳定时间
@@ -42,9 +42,9 @@ export function useHandGesture(): UseHandGestureReturn {
   const classifyGesture = useCallback((landmarks: { x: number; y: number; z: number }[]): Gesture => {
     const fingerTips = [8, 12, 16, 20]; // 食指、中指、无名指、小指尖
     const fingerPips = [6, 10, 14, 18]; // 对应的PIP关节
-    
+
     const fingers: number[] = [];
-    
+
     // 检查每根手指是否伸直
     for (let i = 0; i < fingerTips.length; i++) {
       const tip = landmarks[fingerTips[i]];
@@ -52,22 +52,22 @@ export function useHandGesture(): UseHandGestureReturn {
       // y坐标越小，位置越靠上（注意y轴向下）
       fingers.push(tip.y < pip.y ? 1 : 0);
     }
-    
+
     const totalFingers = fingers.reduce((sum, f) => sum + f, 0);
-    
+
     if (totalFingers === 0) return 'ROCK';
     if (totalFingers === 4) return 'PAPER';
     if (fingers[0] === 1 && fingers[1] === 1 && fingers[2] === 0 && fingers[3] === 0) {
       return 'SCISSORS';
     }
-    
+
     return null;
   }, []);
 
   // 处理手势稳定性
   const processGestureStability = useCallback((gesture: Gesture) => {
     const now = Date.now();
-    
+
     if (gesture === stableGestureRef.current && gesture !== null) {
       if (gestureStartTimeRef.current && (now - gestureStartTimeRef.current) >= GESTURE_HOLD_TIME) {
         setIsStable(true);
@@ -78,36 +78,40 @@ export function useHandGesture(): UseHandGestureReturn {
       gestureStartTimeRef.current = now;
       setIsStable(false);
     }
-    
+
     return gesture;
   }, []);
 
   // 处理手部检测结果
   const onResults = useCallback((results: { multiHandLandmarks?: { x: number; y: number; z: number }[][] }) => {
-    const canvas = canvasRef.current;
+    // const canvas = canvasRef.current;
     const video = videoRef.current;
-    if (!canvas || !video) return;
+    if (!video) return;
+
+    // 1. 先处理手部检测状态更新，不管 canvas 在不在
+    const handDetected = !!(results.multiHandLandmarks && results.multiHandLandmarks.length > 0);
+    setHasHand(handDetected);
+
+    // 2. 如果 canvas 还没渲染，先不画图，但后面的逻辑继续
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
     // 清空画布
     ctx.save();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     // 绘制视频帧（镜像）
     ctx.translate(canvas.width, 0);
     ctx.scale(-1, 1);
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    ctx.restore();
 
     let gesture: Gesture = null;
-    const handDetected = !!(results.multiHandLandmarks && results.multiHandLandmarks.length > 0);
-    setHasHand(handDetected);
 
     if (handDetected && results.multiHandLandmarks) {
       const landmarks = results.multiHandLandmarks[0];
-      
+
       // 绘制手部关键点
       if (window.drawConnectors && window.drawLandmarks && window.HAND_CONNECTIONS) {
         const drawConn = window.drawConnectors as (
@@ -121,7 +125,7 @@ export function useHandGesture(): UseHandGestureReturn {
           landmarks: { x: number; y: number; z: number }[],
           style?: { color?: string; lineWidth?: number; radius?: number }
         ) => void;
-        
+
         drawConn(ctx, landmarks, window.HAND_CONNECTIONS, {
           color: '#00FF00',
           lineWidth: 2,
@@ -136,6 +140,8 @@ export function useHandGesture(): UseHandGestureReturn {
       // 识别手势
       gesture = classifyGesture(landmarks);
     }
+
+    ctx.restore();
 
     // 处理稳定性
     processGestureStability(gesture);
@@ -164,7 +170,7 @@ export function useHandGesture(): UseHandGestureReturn {
 
         // 创建 Hands 实例
         const Hands = window.Hands as {
-          new (config: { locateFile: (file: string) => string }): {
+          new(config: { locateFile: (file: string) => string }): {
             setOptions: (options: {
               maxNumHands?: number;
               modelComplexity?: number;
@@ -198,7 +204,7 @@ export function useHandGesture(): UseHandGestureReturn {
         // 初始化摄像头
         if (videoRef.current && window.Camera) {
           const Camera = window.Camera as {
-            new (
+            new(
               videoElement: HTMLVideoElement,
               config: {
                 onFrame: () => Promise<void>;
@@ -221,7 +227,7 @@ export function useHandGesture(): UseHandGestureReturn {
 
           cameraRef.current = camera;
           await camera.start();
-          
+
           if (isMounted) {
             setIsModelLoaded(true);
           }

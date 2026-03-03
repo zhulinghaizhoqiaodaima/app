@@ -4,8 +4,6 @@ import { useGame } from '@/hooks/useGame';
 import { GESTURE_NAMES, RESULT_TEXTS } from '@/types/game';
 import { Camera, Loader2, Hand } from 'lucide-react';
 
-// 首页默认图片
-const HOMEPAGE_IMAGE = 'https://images.unsplash.com/photo-1614036417651-efe5912149d8?w=800&h=600&fit=crop';
 
 // AI 虚拟人头像
 const AI_AVATAR = 'https://api.dicebear.com/7.x/bottts/svg?seed=ai-opponent&backgroundColor=b6e3f4';
@@ -19,6 +17,7 @@ export function GameBoard() {
     gameResult,
     lockGesture,
     resetRound,
+    startGame, // 引入 startGame
   } = useGame();
 
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -48,6 +47,7 @@ export function GameBoard() {
   const handleStartGame = useCallback(async (gesture: typeof currentGesture) => {
     if (!gesture) return;
 
+    startGame(); // 标记游戏为 isPlaying 状态，使得后续的 lockGesture 生效
     setGamePhase('countdown');
 
     // 倒计时 3-2-1
@@ -59,7 +59,7 @@ export function GameBoard() {
 
     // 锁定手势并进行游戏
     lockGesture(gesture);
-    
+
     // 显示 VS 动画
     setGamePhase('vs');
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -123,55 +123,44 @@ export function GameBoard() {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full h-full max-w-[1200px] mx-auto flex flex-col items-center">
         {/* 主游戏区域 */}
-        <div className={`relative bg-[#16213e] border border-[#0f3460] rounded-xl overflow-hidden transition-all duration-500 ${
-          gamePhase === 'countdown' || gamePhase === 'vs' || gamePhase === 'result'
+        <div className={`relative bg-[#16213e] border border-[#0f3460] rounded-xl overflow-hidden transition-all duration-500 w-full ${gamePhase === 'countdown' || gamePhase === 'vs' || gamePhase === 'result'
             ? 'fixed inset-0 z-50 rounded-none border-0 max-w-none'
             : ''
-        }`}>
+          }`}>
           {/* 视频/画布容器 */}
-          <div className="relative w-full aspect-video bg-black">
+          <div className="relative w-full aspect-[4/3] md:aspect-video bg-black flex justify-center">
             {/* 隐藏的视频元素 */}
             <video
               ref={videoRef}
               className="hidden"
               playsInline
             />
-            
-            {/* 首页图 - 未检测到手时显示 */}
-            {showHomepage && gamePhase === 'waiting' && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <img 
-                  src={HOMEPAGE_IMAGE} 
-                  alt="Game Homepage"
-                  className="w-full h-full object-cover opacity-60"
-                />
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#e94560] to-[#533483] flex items-center justify-center mb-6 animate-pulse">
-                    <Hand className="w-12 h-12 text-white" />
-                  </div>
-                  <h2 className="text-3xl font-bold text-white mb-2">准备好了吗？</h2>
-                  <p className="text-gray-300 text-lg">伸出手掌，开始对战！</p>
-                  <div className="mt-8 flex gap-4 text-4xl">
-                    <span>✊</span>
-                    <span>✋</span>
-                    <span>✌️</span>
-                  </div>
+
+            {/* 始终显示 Canvas 摄像头画面 */}
+            <canvas
+              ref={canvasRef}
+              width={640}
+              height={480}
+              className={`w-full max-w-full h-full object-contain transition-opacity duration-300 ${gamePhase === 'countdown' || gamePhase === 'vs' || gamePhase === 'result' ? 'opacity-30' : 'opacity-100'
+                }`}
+            />
+
+            {/* 首页遮罩 - 未检测到手时显示指示 */}
+            {showHomepage && gamePhase === 'waiting' && isModelLoaded && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#e94560] to-[#533483] flex items-center justify-center mb-6 animate-pulse">
+                  <Hand className="w-12 h-12 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-white mb-2">准备好了吗？</h2>
+                <p className="text-gray-300 text-lg">伸出手掌，对准摄像头开始对战！</p>
+                <div className="mt-8 flex gap-4 text-4xl">
+                  <span>✊</span>
+                  <span>✋</span>
+                  <span>✌️</span>
                 </div>
               </div>
-            )}
-
-            {/* Canvas - 检测到手时显示 */}
-            {!showHomepage && (
-              <canvas
-                ref={canvasRef}
-                width={640}
-                height={480}
-                className={`w-full h-full object-cover transition-opacity duration-300 ${
-                  gamePhase === 'countdown' || gamePhase === 'vs' || gamePhase === 'result' ? 'opacity-30' : 'opacity-100'
-                }`}
-              />
             )}
 
             {/* 加载状态 */}
@@ -185,7 +174,7 @@ export function GameBoard() {
             {/* 全屏倒计时 */}
             {gamePhase === 'countdown' && countdown !== null && (
               <div className="absolute inset-0 flex items-center justify-center z-30">
-                <div 
+                <div
                   className="text-[30vw] md:text-[25vw] font-bold text-[#e94560] animate-pulse leading-none"
                   style={{ textShadow: '0 0 60px rgba(233,69,96,0.8)' }}
                 >
@@ -201,8 +190,8 @@ export function GameBoard() {
                   {/* 玩家 */}
                   <div className="text-center animate-bounce">
                     <div className="w-28 h-28 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-[#4fbdba] to-[#0f3460] p-2 mb-4">
-                      <img 
-                        src={PLAYER_AVATAR} 
+                      <img
+                        src={PLAYER_AVATAR}
                         alt="Player"
                         className="w-full h-full rounded-full bg-[#16213e]"
                       />
@@ -212,17 +201,17 @@ export function GameBoard() {
                       {GESTURE_NAMES[lockedGesture]}
                     </p>
                   </div>
-                  
+
                   {/* VS */}
                   <div className="text-5xl md:text-8xl font-bold text-[#e94560] animate-pulse px-4">
                     VS
                   </div>
-                  
+
                   {/* AI */}
                   <div className="text-center animate-bounce" style={{ animationDelay: '0.15s' }}>
                     <div className="w-28 h-28 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-[#e94560] to-[#533483] p-2 mb-4">
-                      <img 
-                        src={AI_AVATAR} 
+                      <img
+                        src={AI_AVATAR}
                         alt="AI"
                         className="w-full h-full rounded-full bg-[#16213e]"
                       />
@@ -240,16 +229,16 @@ export function GameBoard() {
             {gamePhase === 'result' && showResult && gameResult && (
               <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/85">
                 {/* 结果文字 */}
-                <div 
+                <div
                   className="text-5xl md:text-7xl font-bold mb-8 animate-bounce"
-                  style={{ 
-                    color: resultDisplay.color, 
-                    textShadow: `0 0 50px ${resultDisplay.color}` 
+                  style={{
+                    color: resultDisplay.color,
+                    textShadow: `0 0 50px ${resultDisplay.color}`
                   }}
                 >
                   {resultDisplay.text}
                 </div>
-                
+
                 {/* 双方出拳 */}
                 <div className="flex justify-center gap-12 md:gap-20">
                   <div className="text-center">
@@ -267,13 +256,13 @@ export function GameBoard() {
 
           {/* 底部信息栏 - 只在等待和检测阶段显示 */}
           {(gamePhase === 'waiting' || gamePhase === 'detecting') && (
-            <div className="p-4">
+            <div className="p-4 w-full max-w-2xl mx-auto">
               {/* 手势状态 */}
               <div className="grid grid-cols-3 gap-4 mb-4">
                 {/* 玩家手势 */}
                 <div className="bg-[#0f3460] rounded-lg p-3 text-center">
                   <p className="text-gray-400 text-sm mb-1">你的手势</p>
-                  <div 
+                  <div
                     className="text-2xl md:text-3xl font-bold transition-colors duration-300"
                     style={{ color: hasHand ? (isStable ? '#4fbdba' : '#e94560') : '#888' }}
                   >
@@ -306,7 +295,7 @@ export function GameBoard() {
               {/* 提示文字 */}
               <div className="text-center">
                 <p className="text-gray-400 text-sm">
-                  {showHomepage 
+                  {showHomepage
                     ? '👋 伸出手掌（✊ 锤 / ✋ 包 / ✌️ 剪）开始游戏'
                     : '✋ 保持手势稳定，自动开始倒数'
                   }

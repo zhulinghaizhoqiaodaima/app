@@ -55,12 +55,12 @@ export function useGame() {
 
   // 锁定手势并进行游戏
   const lockGesture = useCallback((gesture: Gesture) => {
-    if (!gesture || !state.isPlaying || state.currentGesture) return;
-
-    const aiGesture = aiMove();
-    const result = judge(gesture, aiGesture);
-
     setState(prev => {
+      if (!gesture || !prev.isPlaying || prev.currentGesture) return prev;
+
+      const aiGesture = aiMove();
+      const result = judge(gesture, aiGesture);
+
       const newScore = { ...prev.score };
       if (result === 'WIN') newScore.player += 1;
       else if (result === 'LOSE') newScore.ai += 1;
@@ -74,7 +74,7 @@ export function useGame() {
         score: newScore,
       };
     });
-  }, [state.isPlaying, state.currentGesture, aiMove, judge]);
+  }, [aiMove, judge]);
 
   // 重置回合
   const resetRound = useCallback(() => {
