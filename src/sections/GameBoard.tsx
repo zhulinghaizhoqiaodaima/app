@@ -6,8 +6,11 @@ import { Camera } from 'lucide-react';
 import { WelcomeOverlay } from './WelcomeOverlay';
 
 
-const GESTURE_EMOJIS = { ROCK: '✊', PAPER: '✋', SCISSORS: '✌️' };
-
+const GESTURE_EMOJIS = {
+  ROCK: <img src="/icons/石头.png" alt="石头" className="w-full h-full object-contain drop-shadow-md" />,
+  PAPER: <img src="/icons/包.png" alt="包" className="w-full h-full object-contain drop-shadow-md" />,
+  SCISSORS: <img src="/icons/剪刀.png" alt="剪刀" className="w-full h-full object-contain drop-shadow-md" />
+};
 export function GameBoard() {
   const { videoRef, canvasRef, currentGesture, isStable, isModelLoaded, hasHand, error } = useHandGesture();
   const {
