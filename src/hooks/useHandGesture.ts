@@ -187,7 +187,7 @@ export function useHandGesture(): UseHandGestureReturn {
 
         const hands = new Hands({
           locateFile: (_file: string) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${_file}`;
+            return `https://unpkg.com/@mediapipe/hands/${_file}`;
           },
         });
 
