@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useHandGesture } from '@/hooks/useHandGesture';
 import { useGame } from '@/hooks/useGame';
-import { GESTURE_NAMES, RESULT_TEXTS } from '@/types/game';
+import { GESTURE_NAMES } from '@/types/game';
 import { Camera } from 'lucide-react';
 import { WelcomeOverlay } from './WelcomeOverlay';
 
@@ -67,12 +67,6 @@ export function GameBoard() {
     }, 3000);
   }, [lockGesture, resetRound, hasHand, startGame]);
 
-  const getResultDisplay = () => {
-    if (!gameResult) return { text: '准备开始！', color: '#fff' };
-    return RESULT_TEXTS[gameResult];
-  };
-
-  const resultDisplay = getResultDisplay();
 
   const handleReset = () => {
     resetRound();
@@ -171,9 +165,9 @@ export function GameBoard() {
 
               {/* Current Gesture Icon Large Square */}
               <div className="w-[100px] h-[100px] sm:w-[130px] sm:h-[130px] bg-white flex items-center justify-center border-[6px] border-white shadow-sm overflow-hidden relative">
-                <span className={`text-[60px] sm:text-[80px] drop-shadow-md transition-transform duration-300 ${isStable ? 'scale-110' : 'scale-100'}`}>
-                  {currentGesture ? GESTURE_EMOJIS[currentGesture] : <span className="text-black/20">✊</span>}
-                </span>
+                <div className={`w-[80%] h-[80%] transition-transform duration-300 ${isStable ? 'scale-110 drop-shadow-lg' : 'scale-100 opacity-60'}`}>
+                  {currentGesture ? GESTURE_EMOJIS[currentGesture] : GESTURE_EMOJIS['ROCK']}
+                </div>
               </div>
 
               <div className="mt-2 sm:mt-4 flex flex-col">
@@ -191,8 +185,12 @@ export function GameBoard() {
 
             {/* Small adjacent icons */}
             <div className="hidden min-[400px]:flex self-start gap-2 sm:mt-[calc(140px-44px)] mt-2">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white shadow-sm flex items-center justify-center text-lg sm:text-xl">✌️</div>
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white shadow-sm flex items-center justify-center text-lg sm:text-xl">✋</div>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white shadow-sm flex items-center justify-center p-1.5 opacity-80" aria-hidden="true">
+                {GESTURE_EMOJIS['SCISSORS']}
+              </div>
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white shadow-sm flex items-center justify-center p-1.5 opacity-80" aria-hidden="true">
+                {GESTURE_EMOJIS['PAPER']}
+              </div>
             </div>
           </div>
 
@@ -242,13 +240,13 @@ export function GameBoard() {
                 <div className="text-center animate-bounce flex-1 flex flex-col items-center max-w-[300px]">
                   <p className="text-white text-3xl font-black mb-6 tracking-widest">你</p>
                   <div className="w-full aspect-square bg-white border-8 border-transparent flex items-center justify-center shadow-[0_0_60px_rgba(255,255,255,0.2)] rounded-2xl relative overflow-hidden">
-                    <span className="text-[120px] md:text-[180px] drop-shadow-xl z-10 transition-transform hover:scale-110">
-                      {GESTURE_EMOJIS[lockedGesture]}
-                    </span>
+                    <div className="w-1/2 h-1/2 drop-shadow-xl z-10 transition-transform hover:scale-110">
+                      {GESTURE_EMOJIS[lockedGesture!]}
+                    </div>
                     <div className="absolute w-full h-1/2 bottom-0 bg-gradient-to-t from-black/10 to-transparent"></div>
                   </div>
                   <p className="text-white text-3xl md:text-5xl font-black mt-8 tracking-widest">
-                    {GESTURE_NAMES[lockedGesture]}
+                    {GESTURE_NAMES[lockedGesture!]}
                   </p>
                 </div>
 
@@ -266,9 +264,9 @@ export function GameBoard() {
                 <div className="text-center animate-bounce flex-1 flex flex-col items-center max-w-[300px]" style={{ animationDelay: '0.1s' }}>
                   <p className="text-[#F4C522] text-3xl font-black mb-6 tracking-widest">AI</p>
                   <div className="w-full aspect-square bg-[#1a1a1a] border-8 border-[#F4C522] flex items-center justify-center shadow-[0_0_60px_rgba(244,197,34,0.3)] rounded-2xl relative overflow-hidden">
-                    <span className="text-[120px] md:text-[180px] drop-shadow-xl z-10">
-                      {GESTURE_EMOJIS[aiGesture]}
-                    </span>
+                    <div className="w-1/2 h-1/2 drop-shadow-xl z-10">
+                      {GESTURE_EMOJIS[aiGesture!]}
+                    </div>
                     <div className="absolute w-full h-1/2 bottom-0 bg-gradient-to-t from-[#F4C522]/20 to-transparent"></div>
                   </div>
                   <p className="text-[#F4C522] text-3xl md:text-5xl font-black mt-8 tracking-widest">
@@ -282,42 +280,110 @@ export function GameBoard() {
 
         {/* 结果展示 */}
         {gamePhase === 'result' && showResult && gameResult && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/90 backdrop-blur-lg">
+          <div className="absolute inset-0 z-40 pointer-events-auto flex flex-col bg-transparent">
 
-            {/* 顶部的战斗复盘小窗 */}
-            <div className="absolute top-12 flex items-center justify-center gap-8 opacity-60 scale-75">
-              <div className="text-center">
-                <span className="text-6xl">{GESTURE_EMOJIS[lockedGesture!]}</span>
-              </div>
-              <div className="text-white font-black text-4xl italic">VS</div>
-              <div className="text-center">
-                <span className="text-6xl">{GESTURE_EMOJIS[aiGesture!]}</span>
+            {/* Top Yellow Half */}
+            <div className="relative h-[55%] bg-[#F4C522] flex flex-col items-center justify-start pt-[8vh] md:pt-[10vh]">
+              {gameResult === 'WIN' && (
+                <div className="flex flex-col items-center z-10 relative">
+                  <h1 className="text-black text-[80px] md:text-[110px] font-black leading-[1.0] text-center tracking-tighter">
+                    OK您<br />胜利了
+                  </h1>
+                  <div className="absolute -bottom-[60px] md:-bottom-[80px] text-[70px] md:text-[100px] font-black text-[#D4A51A] tracking-tighter whitespace-nowrap z-0">
+                    YOU WIN
+                  </div>
+                </div>
+              )}
+              {gameResult === 'LOSE' && (
+                <div className="flex flex-col items-center z-10 relative">
+                  <h1 className="text-black text-[90px] md:text-[120px] font-black leading-[1.0] text-center tracking-tighter">
+                    AI<br />胜利了
+                  </h1>
+                  <div className="absolute -bottom-[50px] md:-bottom-[70px] text-[70px] md:text-[100px] font-black text-[#D4A51A] tracking-tighter whitespace-nowrap z-0">
+                    YOU LOSE
+                  </div>
+                </div>
+              )}
+              {gameResult === 'DRAW' && (
+                <div className="flex flex-col items-center z-10 relative">
+                  <h1 className="text-black text-[80px] md:text-[110px] font-black leading-[1.0] text-center tracking-tighter">
+                    平局<br />再来一盘
+                  </h1>
+                  <div className="absolute -bottom-[60px] md:-bottom-[80px] text-[70px] md:text-[100px] font-black text-[#D4A51A] tracking-tighter whitespace-nowrap z-0">
+                    DRAW
+                  </div>
+                </div>
+              )}
+
+              {/* 双方出拳框 */}
+              <div className="absolute bottom-4 sm:bottom-6 w-full px-6 md:px-24 flex justify-between items-end z-20">
+                <div className="flex flex-col gap-1 items-start">
+                  <span className="text-black font-black text-xl md:text-2xl tracking-widest leading-none">你出</span>
+                  <div className="w-[80px] h-[80px] md:w-[110px] md:h-[110px] bg-white border-0 flex items-center justify-center p-2">
+                    {GESTURE_EMOJIS[lockedGesture!]}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1 items-end">
+                  <span className="text-black font-black text-xl md:text-2xl tracking-widest leading-none">AI出</span>
+                  <div className="w-[80px] h-[80px] md:w-[110px] md:h-[110px] bg-white border-0 flex items-center justify-center p-2">
+                    {GESTURE_EMOJIS[aiGesture!]}
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* 结果主文字 */}
-            <div
-              className={`text-[80px] md:text-[130px] font-black mb-16 animate-bounce tracking-[0.1em] uppercase filter
-                ${gameResult === 'WIN' ? 'text-[#4fbdba] drop-shadow-[0_0_80px_rgba(79,189,186,0.8)]' :
-                  gameResult === 'LOSE' ? 'text-[#e94560] drop-shadow-[0_0_80px_rgba(233,69,96,0.8)]' :
-                    'text-[#F4C522] drop-shadow-[0_0_80px_rgba(244,197,34,0.8)]'}`
-              }
-            >
-              {resultDisplay.text}
-            </div>
+            {/* Bottom Gray Half */}
+            <div className="relative h-[45%] bg-[#E6E6E6] flex flex-col items-center justify-start pt-[5vh] md:pt-[8vh]">
 
-            {/* 控制区 */}
-            <div className="mt-4 flex flex-col items-center gap-4">
+              {gameResult === 'WIN' && (
+                <div className="relative w-[220px] h-[220px] md:w-[320px] md:h-[320px] rounded-full border-[16px] md:border-[20px] border-black flex items-center justify-center bg-transparent mt-4 md:mt-0">
+                  <span className="text-[110px] md:text-[160px] font-black tracking-tighter text-black leading-none drop-shadow-sm">ok</span>
+
+                  {/* Heart Bubble */}
+                  <div className="absolute -top-6 -right-6 md:-top-8 md:-right-10 w-24 h-24 md:w-32 md:h-32 bg-white rounded-full border-[8px] md:border-[10px] border-black flex items-center justify-center">
+                    <div className="absolute -bottom-2 -left-2 md:-bottom-3 md:-left-3 w-8 h-8 md:w-10 md:h-10 bg-white border-l-[8px] border-b-[8px] md:border-l-[10px] md:border-b-[10px] border-black rotate-45"></div>
+                    <svg className="w-12 h-12 md:w-16 md:h-16 text-[#F4C522] z-10 mt-1 md:mt-2" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+
+              {gameResult === 'LOSE' && (
+                <div className="relative w-[220px] h-[220px] md:w-[320px] md:h-[320px] rounded-full border-[16px] md:border-[20px] border-black flex items-center justify-center bg-transparent mt-4 md:mt-0">
+                  {/* Left Eye */}
+                  <div className="absolute top-[55%] left-[20%] w-[45px] h-[15px] md:w-[60px] md:h-[20px] bg-black rotate-[-15deg] z-10"></div>
+                  {/* Left Tear */}
+                  <div className="absolute top-[60%] left-[23%] md:left-[23%] w-[25px] h-[60px] md:w-[35px] md:h-[80px] bg-[#BDE0FE] rounded-b-full"></div>
+
+                  {/* Right Eye */}
+                  <div className="absolute top-[55%] right-[20%] w-[45px] h-[15px] md:w-[60px] md:h-[20px] bg-black rotate-[15deg] z-10"></div>
+                  {/* Right Tear */}
+                  <div className="absolute top-[60%] right-[23%] md:right-[23%] w-[25px] h-[60px] md:w-[35px] md:h-[80px] bg-[#BDE0FE] rounded-b-full"></div>
+
+                  {/* Mouth - Vertical block */}
+                  <div className="absolute top-[52%] left-1/2 -translate-x-1/2 w-[16px] h-[45px] md:w-[20px] md:h-[60px] bg-black z-10"></div>
+                </div>
+              )}
+
+              {gameResult === 'DRAW' && (
+                <div className="relative w-[220px] h-[220px] md:w-[320px] md:h-[320px] rounded-full border-[16px] md:border-[20px] border-black flex items-center justify-center bg-transparent mt-4 md:mt-0">
+                  <div className="flex gap-10 md:gap-14 mt-6">
+                    <div className="w-[16px] h-[45px] md:w-[20px] md:h-[60px] bg-black"></div>
+                    <div className="w-[16px] h-[45px] md:w-[20px] md:h-[60px] bg-black"></div>
+                  </div>
+                </div>
+              )}
+
               <button
                 onClick={handleReset}
-                className="group relative overflow-hidden bg-[#F4C522] text-black font-black text-2xl py-5 px-16 transition-all hover:scale-105 active:scale-95 border-4 border-[#F4C522] hover:border-white shadow-[0_0_40px_rgba(244,197,34,0.4)]"
+                className="absolute bottom-6 md:bottom-10 px-8 py-3 bg-[#F4C522] text-black font-black text-xl md:text-2xl border-4 border-black shadow-[4px_4px_0_0_#000] md:shadow-[6px_6px_0_0_#000] hover:translate-y-1 hover:shadow-none transition-all active:scale-95 z-50"
               >
-                <span className="relative z-10 tracking-[0.2em] ml-2">再来一盘</span>
-                <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                返回主页
               </button>
-              <p className="text-white/40 text-sm font-bold tracking-widest mt-4">伸出双手即可再次对战</p>
-            </div>
 
+            </div>
           </div>
         )}
 
