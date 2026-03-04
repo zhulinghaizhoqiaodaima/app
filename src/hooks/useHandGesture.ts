@@ -155,7 +155,7 @@ export function useHandGesture(): UseHandGestureReturn {
     const initHands = async () => {
       try {
         // 等待 MediaPipe 脚本加载
-        if (!window.Hands) {
+        if (!window.Hands || !window.Camera) {
           await new Promise<void>((resolve) => {
             const checkInterval = setInterval(() => {
               if (window.Hands) {
@@ -168,6 +168,7 @@ export function useHandGesture(): UseHandGestureReturn {
 
         if (!isMounted) return;
 
+        console.log('[HandGesture] Initializing Hands instance...');
         // 创建 Hands 实例
         const Hands = window.Hands as {
           new(config: { locateFile: (file: string) => string }): {

@@ -5,9 +5,6 @@ import { GESTURE_NAMES, RESULT_TEXTS } from '@/types/game';
 import { Camera } from 'lucide-react';
 import { WelcomeOverlay } from './WelcomeOverlay';
 
-// AI 虚拟人头像
-const AI_AVATAR = 'https://api.dicebear.com/7.x/bottts/svg?seed=ai-opponent&backgroundColor=b6e3f4';
-const PLAYER_AVATAR = 'https://api.dicebear.com/7.x/avataaars/svg?seed=player&backgroundColor=c0aede';
 
 const GESTURE_EMOJIS = { ROCK: '✊', PAPER: '✋', SCISSORS: '✌️' };
 
@@ -96,15 +93,18 @@ export function GameBoard() {
     );
   }
 
-  if (!isModelLoaded) {
-    return <WelcomeOverlay isLoading={true} />;
-  }
-
   return (
     <div className={`relative min-h-screen font-sans flex flex-col overflow-hidden transition-colors duration-500 ${(gamePhase === 'waiting' || gamePhase === 'detecting') ? 'bg-[#E6E6E6]' : 'bg-[#16213e]'}`}>
 
       {/* 隐藏的视频元素 */}
       <video ref={videoRef} className="hidden" playsInline />
+
+      {/* 加载遮罩 */}
+      {!isModelLoaded && (
+        <div className="absolute inset-0 z-50">
+          <WelcomeOverlay isLoading={true} />
+        </div>
+      )}
 
       {/* ============ CANVAS LAYER (ALWAYS MOUNTED) ============ */}
       <div className={`transition-all duration-500 flex justify-center items-center overflow-hidden
