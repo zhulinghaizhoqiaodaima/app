@@ -20,6 +20,7 @@ interface UseHandGestureReturn {
   isModelLoaded: boolean;
   hasHand: boolean;
   error: string | null;
+  countdownTime: number | null;
 }
 
 export function useHandGesture(): UseHandGestureReturn {
@@ -33,10 +34,11 @@ export function useHandGesture(): UseHandGestureReturn {
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [hasHand, setHasHand] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [countdownTime, setCountdownTime] = useState<number | null>(null);
 
   const stableGestureRef = useRef<Gesture>(null);
   const gestureStartTimeRef = useRef<number | null>(null);
-  const GESTURE_HOLD_TIME = 800; // 0.8秒稳定时间
+  const GESTURE_HOLD_TIME = 6000; // 6秒稳定时间
 
   // 根据手指关键点判断手势
   const classifyGesture = useCallback((landmarks: { x: number; y: number; z: number }[]): Gesture => {
@@ -69,14 +71,25 @@ export function useHandGesture(): UseHandGestureReturn {
     const now = Date.now();
 
     if (gesture === stableGestureRef.current && gesture !== null) {
-      if (gestureStartTimeRef.current && (now - gestureStartTimeRef.current) >= GESTURE_HOLD_TIME) {
-        setIsStable(true);
-        return gesture;
+      if (gestureStartTimeRef.current) {
+        const elapsed = now - gestureStartTimeRef.current;
+        const remaining = Math.max(0, GESTURE_HOLD_TIME - elapsed);
+        setCountdownTime(Math.ceil(remaining / 1000));
+
+        if (elapsed >= GESTURE_HOLD_TIME) {
+          setIsStable(true);
+          return gesture;
+        }
       }
     } else {
       stableGestureRef.current = gesture;
       gestureStartTimeRef.current = now;
       setIsStable(false);
+      if (gesture !== null) {
+        setCountdownTime(Math.ceil(GESTURE_HOLD_TIME / 1000));
+      } else {
+        setCountdownTime(null);
+      }
     }
 
     return gesture;
@@ -264,5 +277,6 @@ export function useHandGesture(): UseHandGestureReturn {
     isModelLoaded,
     hasHand,
     error,
+    countdownTime,
   };
 }

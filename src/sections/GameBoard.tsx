@@ -12,7 +12,7 @@ const GESTURE_EMOJIS = {
   SCISSORS: <img src="/icons/剪刀.png" alt="剪刀" className="w-full h-full object-contain drop-shadow-md" />
 };
 export function GameBoard() {
-  const { videoRef, canvasRef, currentGesture, isStable, isModelLoaded, hasHand, error } = useHandGesture();
+  const { videoRef, canvasRef, currentGesture, isStable, isModelLoaded, hasHand, countdownTime, error } = useHandGesture();
   const {
     currentGesture: lockedGesture,
     aiGesture,
@@ -133,8 +133,10 @@ export function GameBoard() {
 
             {/* 倒计时提示与准备提示 */}
             {hasHand && !isStable && currentGesture && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm font-bold tracking-widest whitespace-nowrap backdrop-blur">
-                保持[{GESTURE_NAMES[currentGesture]}]以开始比赛
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm font-bold tracking-widest whitespace-nowrap backdrop-blur flex items-center gap-2">
+                <span>保持[{GESTURE_NAMES[currentGesture]}]</span>
+                <span className="text-[#F4C522] text-lg">{countdownTime}s</span>
+                <span>以开始比赛</span>
               </div>
             )}
             {hasHand && isStable && (
