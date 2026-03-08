@@ -69,7 +69,27 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes custom-swing {
+  0% {
+    transform: rotate(-5deg);
+  }
+
+  50% {
+    transform: rotate(5deg);
+  }
+
+  100% {
+    transform: rotate(-5deg);
+  }
+}
+
+.animate-swing {
+  animation: custom-swing 2s infinite ease-in-out;
+  transform-origin: bottom center;
 }
