@@ -64,16 +64,8 @@ export function GameBoard() {
       setShowResult(false);
       resetRound();
       setGamePhase(hasHand ? 'detecting' : 'waiting');
-    }, 3000);
+    }, 10000);
   }, [lockGesture, resetRound, hasHand, startGame]);
-
-
-  const handleReset = () => {
-    resetRound();
-    setGamePhase(hasHand ? 'detecting' : 'waiting');
-    setCountdown(null);
-    setShowResult(false);
-  };
 
   if (error) {
     return (
@@ -96,12 +88,13 @@ export function GameBoard() {
       {/* 隐藏的视频元素 */}
       <video ref={videoRef} className="hidden" playsInline />
 
-      {/* 加载遮罩 */}
-      {!isModelLoaded && (
-        <div className="absolute inset-0 z-50">
-          <WelcomeOverlay isLoading={true} />
-        </div>
-      )}
+      {/* 加载遮罩与待机页 */}
+      <div
+        className={`absolute inset-0 z-50 transition-opacity duration-500 origin-top pointer-events-none ${!isModelLoaded || gamePhase === 'waiting' ? 'opacity-100 pointer-events-auto' : 'opacity-0'
+          }`}
+      >
+        <WelcomeOverlay isLoading={!isModelLoaded} />
+      </div>
 
       {/* ============ CANVAS LAYER (ALWAYS MOUNTED) ============ */}
       <div className={`transition-all duration-500 flex justify-center items-center overflow-hidden
@@ -378,12 +371,12 @@ export function GameBoard() {
                 </div>
               )}
 
-              <button
+              {/* <button
                 onClick={handleReset}
                 className="absolute bottom-6 md:bottom-10 px-8 py-3 bg-[#F4C522] text-black font-black text-xl md:text-2xl border-4 border-black shadow-[4px_4px_0_0_#000] md:shadow-[6px_6px_0_0_#000] hover:translate-y-1 hover:shadow-none transition-all active:scale-95 z-50"
               >
                 返回主页
-              </button>
+              </button> */}
 
             </div>
           </div>
