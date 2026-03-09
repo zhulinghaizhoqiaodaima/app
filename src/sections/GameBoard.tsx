@@ -213,7 +213,7 @@ export function GameBoard() {
         {gamePhase === 'countdown' && countdown !== null && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-30 backdrop-blur-sm">
             <div className="w-[500px] h-[500px] xl:w-[1000px] xl:h-[1000px] bg-[#F4C522]/90 rounded-full flex flex-col items-center justify-center shadow-[0_0_100px_rgba(244,197,34,0.5)] animate-pulse">
-              <div className="text-black font-black text-2xl xl:text-6xl xl:mb-8 tracking-widest mb-4 opacity-70">判定开始</div>
+              <div className="text-black font-black text-2xl xl:text-6xl xl:mb-8 tracking-widest mb-4 opacity-70">AI在思考</div>
               <div
                 className="text-[300px] xl:text-[600px] xl:-mt-20 font-black text-black leading-none drop-shadow-2xl -mt-10"
               >

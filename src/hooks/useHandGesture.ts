@@ -38,7 +38,7 @@ export function useHandGesture(): UseHandGestureReturn {
 
   const stableGestureRef = useRef<Gesture>(null);
   const gestureStartTimeRef = useRef<number | null>(null);
-  const GESTURE_HOLD_TIME = 6000; // 6秒稳定时间
+  const GESTURE_HOLD_TIME = 5000; // 5秒稳定时间
 
   // 根据手指关键点判断手势
   const classifyGesture = useCallback((landmarks: { x: number; y: number; z: number }[]): Gesture => {
